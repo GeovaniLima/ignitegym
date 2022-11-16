@@ -43,6 +43,7 @@ export function ExerciseCard({ ...rest}: Props ) {
           <Heading
             color="white"
             fontSize="lg"
+            fontFamily="heading"
           >
             Remanda unilateral
           </Heading>
