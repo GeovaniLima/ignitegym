@@ -1,27 +1,58 @@
-import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 import {
   VStack,
-  Image,
   Text,
   Center,
   Heading,
-  ScrollView
+  ScrollView,
+  useToast
 } from 'native-base';
 
-import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
+import { useAuth } from '@hooks/useAuth';
+import { AppError } from '@utils/AppError';
+
+type FormDataProps = {
+  usuario: string;
+  senha: string;
+}
+
+const signInSchema = yup.object({
+  usuario: yup.string().required('Informe o usuário.'),
+  senha: yup.string().required('Informe a senha.')
+})
 
 import { Input } from '@components/Input';
 import { Button } from '@components/Button';
 
-import LogoSvg from '@assets/logo.svg';
-import BackgroundImg from '@assets/background.png';
-
 export function SignIn(){
+  const [isLoading, setIsLoading] = useState(false);
+  const toast = useToast();
+  const { signIn } = useAuth();
 
-  const navigation = useNavigation<AuthNavigatorRoutesProps>();
+  const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({
+    resolver: yupResolver(signInSchema)
+  });
 
-  function handleNewAccount() {
-    navigation.navigate('signUp');
+  async function handleSignIn({ usuario, senha}: FormDataProps) {
+    try {
+      setIsLoading(true);
+      await signIn(usuario, senha);
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+
+      const title = isAppError ? 'Usuário ou senha inválidos!' : 'Não foi possível entrar. Tente novamente mais tarde.';
+      
+      setIsLoading(false);
+
+      toast.show({
+        title,
+        placement: 'top',
+        bgColor: 'red.500'
+      });
+    }
   }
 
   return(
@@ -32,76 +63,99 @@ export function SignIn(){
       showsVerticalScrollIndicator={false}
     >
       <VStack
-        flex={1}
-        bg="gray.700"
-        px={10}
-        pb={16}
+        bg="green.700"
+        px={6}
       >
-        <Image 
-          source={BackgroundImg}
-          defaultSource={BackgroundImg}
-          alt="Pessoas treinando"
-          resizeMode='contain'
-          position='absolute'
-        />
-
         <Center
           my={24}
         >
-          <LogoSvg />
-
-          <Text
-            color="gray.100"
-            fontSize="sm"
-          >
-            Treine sua mente e o seu corpo
-          </Text>
-        </Center>
-
-        <Center>
           <Heading
-            color="gray.100"
-            fontSize="xl"
+            color="white"
             fontFamily="heading"
-            mb={6}
+            fontSize="4xl"
+            fontWeight="bold"
           >
-            Acesse sua conta
+            Grupo AMC
           </Heading>
-
-          <Input 
-            placeholder='E-mail'
-            keyboardType='email-address'
-            autoCapitalize='none'
-          />
-          <Input 
-            placeholder='Senha'
-            secureTextEntry
-          />
-
-          <Button 
-            title="Acessar"
-          />
         </Center>
+      </VStack>
 
-        <Center
-          mt={24}
+      <VStack
+        flex={1}
+        bg="white"
+        px={6}
+        pb={16}
+      >
+        <Heading
+          color="darkText"
+          fontSize="sm"
+          fontFamily="heading"
+          mb={12}
+          mt={12}
+          textAlign="center"
         >
-          <Text
-            color="gray.100"
-            fontSize="sm"
-            mb={3}
-            fontFamily="body"
-          >
-            Ainda não tem acesso?
-          </Text>
+          Faça seu login para acessar o sistema
+        </Heading>
 
-          <Button 
-            title="Criar conta"
-            variant="outline"
-            onPress={handleNewAccount}
-          />
-        </Center>
-        
+        <Text
+          color="gray.300"
+          mb={1}
+          fontSize="xs"
+          fontFamily="body"
+        >
+          Usuário
+        </Text>
+
+        <Controller 
+          control={control}
+          name="usuario"
+          render={({ field: { onChange } }) => (
+            <Input 
+              placeholder='Usuário'
+              autoCapitalize='none'
+              onChangeText={onChange}
+              errorMessage={errors.usuario?.message}
+            />
+          )}
+        />
+
+        <Text
+          color="gray.300"
+          mb={1}
+          fontSize="xs"
+          fontFamily="body"
+        >
+          Senha
+        </Text>
+
+        <Controller 
+          control={control}
+          name="senha"
+          render={({ field: { onChange } }) => (
+            <Input 
+              placeholder='Senha'
+              secureTextEntry
+              onChangeText={onChange}
+              errorMessage={errors.senha?.message}
+            />
+          )}
+        />
+
+        <Button 
+          title="Acessar"
+          onPress={handleSubmit(handleSignIn)}
+          isLoading={isLoading}
+        />
+
+        <Text
+          color="darkText"
+          fontSize="xs"
+          mt={3}
+          fontFamily="body"
+          textAlign="center"
+        >
+          Esqueceu a senha? Contate seu supervisor ou o TI
+        </Text>
       </VStack>
     </ScrollView>
   )

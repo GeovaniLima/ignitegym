@@ -1,93 +1,49 @@
-import { Platform } from 'react-native';
-import { useTheme } from 'native-base';
-import { createBottomTabNavigator, BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-
-import HomeSvg from '@assets/home.svg';
-import HistorySvg from '@assets/history.svg';
-import ProfileSvg from '@assets/profile.svg';
+import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Home } from '@screens/Home';
-import { History } from '@screens/History';
-import { Profile } from '@screens/Profile';
-import { Exercise } from '@screens/Exercise';
+import { ModuleListQuality } from '@screens/ModuleListQuality';
+import { InspectionOpList } from '@screens/InspectionOpList';
+import { Fineshid } from '@screens/Fineshid';
+import { InspectionNewOp } from '@screens/InspectionNewOp';
 
 type AppRoutes = {
   home: undefined;
-  exercise: undefined;
-  profile: undefined;
-  history: undefined;
+  moduleListQuality: undefined;
+  inspectionOpList: undefined;
+  inspectionOpNewOp: undefined;
+  fineshid: undefined;
 }
 
-export type AppNavigatorRoutesProps = BottomTabNavigationProp<AppRoutes>;
+export type AppNavigatorRoutesProps = NativeStackNavigationProp<AppRoutes>;
 
-const { Navigator, Screen } = createBottomTabNavigator<AppRoutes>();
+const { Navigator, Screen } = createNativeStackNavigator<AppRoutes>();
 
 export function AppRoutes() {
-  const { sizes, colors } = useTheme();
-
-  const iconSize = sizes[6];
-
   return(
     <Navigator
       screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: colors.green[500],
-        tabBarInactiveTintColor: colors.gray[200],
-        tabBarStyle: {
-          backgroundColor: colors.gray[600],
-          borderTopWidth: 0,
-          height: Platform.OS === "android" ? 'auto' : 96,
-          paddingBottom: sizes[10],
-          paddingTop: sizes[6]
-        }
+        headerShown: false
       }}
     >
       <Screen 
         name="home"
         component={Home}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <HomeSvg 
-              fill={color}
-              width={iconSize}
-              height={iconSize}
-            />
-          )
-        }}
       />
       <Screen 
-        name="history"
-        component={History}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <HistorySvg 
-              fill={color}
-              width={iconSize}
-              height={iconSize}
-            />
-          )
-        }}
+        name="moduleListQuality"
+        component={ModuleListQuality}
       />
       <Screen 
-        name="profile"
-        component={Profile}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <ProfileSvg 
-              fill={color}
-              width={iconSize}
-              height={iconSize}
-            />
-          )
-        }}
+        name="inspectionOpList"
+        component={InspectionOpList}
       />
       <Screen 
-        name="exercise"
-        component={Exercise}
-        options={{
-          tabBarButton: () => null
-        }}
+        name="inspectionOpNewOp"
+        component={InspectionNewOp}
+      />
+      <Screen 
+        name="fineshid"
+        component={Fineshid}
       />
     </Navigator>
   )

@@ -17,12 +17,12 @@ export function Input({ errorMessage = null, isInvalid, ...rest }: Props) {
       mb={4}
     >
       <NativeBaseInput 
-        bg="gray.700"
+        bg="white"
         h={14}
         px={4}
-        borderWidth={0}
+        borderWidth={1}
         fontSize="md"
-        color="white"
+        color="darkText"
         fontFamily="body"
         placeholderTextColor="gray.300"  
         isInvalid={invalid}
@@ -31,9 +31,9 @@ export function Input({ errorMessage = null, isInvalid, ...rest }: Props) {
           borderColor: "red.500"
         }}   
         _focus={{
-          bg: "gray.700",
+          bg: "white",
           borderWidth: 1,
-          borderColor: "green.500"
+          borderColor: "green.700"
         }}
         {...rest}
       />

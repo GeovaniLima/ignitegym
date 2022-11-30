@@ -4,10 +4,10 @@ export function Loading() {
   return(
     <Center
       flex={1}
-      bg="gray.700"
+      bg="white"
     >
       <Spinner 
-        color="green.500"
+        color="green.700"
       />
     </Center>
   )
