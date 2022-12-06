@@ -9,6 +9,7 @@ export type AuthContextDataProps = {
   user: UserDTO;
   signIn: (usuario: string, senha: string) => Promise<void>;
   signOut: () => Promise<void>;
+  //fetchModule: () => Promise<void>;
   isLoadingUserStorageData: boolean;
 }
 
@@ -31,7 +32,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
           'Authorization': `${token}`
         }
        });
-
+       
       if(data){
         setUser(data);
         storageUserSave(data);
@@ -72,6 +73,19 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 
   }
 
+  async function fetchModule(usuario: string, senha: string) {
+    try {
+      const { data } = await api.get(`/componentes/v10/autenticacaoUsuario?usuario=${usuario}&senha=${senha}`, { 
+        headers: {
+          'Authorization': `${token}`
+        }
+      });
+      
+    } catch (error) {
+      throw error;
+    }
+  }
+
   useEffect(() => {
     loadUserData();
   },[]);
@@ -81,6 +95,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
       user, 
       signIn,
       signOut,
+      //fetchModule,
       isLoadingUserStorageData
     }}>
       { children }

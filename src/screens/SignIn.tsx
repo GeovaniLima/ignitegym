@@ -114,6 +114,7 @@ export function SignIn(){
               placeholder='Usuário'
               autoCapitalize='none'
               onChangeText={onChange}
+              autoCorrect={false}
               errorMessage={errors.usuario?.message}
             />
           )}

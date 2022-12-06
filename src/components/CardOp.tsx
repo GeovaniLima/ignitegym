@@ -29,7 +29,7 @@ export function CardOp({
       bg="green.700"
       rounded="md"
       py={5}
-      mb={5}
+      mb={3}
       _pressed={{
         bg: "green.500"
       }}
@@ -53,35 +53,35 @@ export function CardOp({
           color="white"
           fontSize="sm"
         >
-          {op}
+          Ordem de Produção: {op}
         </Text>
 
         <Text
           color="white"
           fontSize="sm"
         >
-          {situation}
+          Status: {situation}
         </Text>
 
         <Text
           color="white"
           fontSize="sm"
         >
-          {typeOp}
+          Tipo: {typeOp}
         </Text>
 
         <Text
           color="white"
           fontSize="sm"
         >
-          {faction}
+          Facção: {faction}
         </Text>
 
         <Text
           color="white"
           fontSize="sm"
         >
-          {amount}
+          Quantidade de peças: {amount}
         </Text>
       </VStack>
       

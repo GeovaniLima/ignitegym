@@ -1,6 +1,6 @@
-import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
-import { DateTimePickerAndroid }  from '@react-native-community/datetimepicker';
+import { useState, useEffect, useCallback } from 'react';
+import { Alert } from 'react-native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -9,7 +9,8 @@ import {
   HStack,
   ScrollView,
   VStack,
-  Text
+  Text,
+  useToast
 } from 'native-base';
 
 type FormDataProps = {
@@ -27,6 +28,7 @@ type FormDataProps = {
   secondQuality: string;
   downTime: string;
   motifStopped: string;
+  motives: string;
 }
 
 const inspectionNewOpSchema = yup.object({
@@ -40,6 +42,7 @@ const inspectionNewOpSchema = yup.object({
   faction: yup.string().required('Informe a facção.'),
   amountOp: yup.string().required('Informe a quantidade de op.'),
   amountOpen: yup.string().required('Informe a quantidade abertas.'),
+  motives: yup.string().required('Informe os motivos.'),
   amountRecovered: yup.string().required('Informe a quantidade recuperadas.'),
   secondQuality: yup.string().required('Informe a quantidade de segunda qualidade.'),
   downTime: yup.string().required('Informe o tempo parado.'),
@@ -50,17 +53,59 @@ const inspectionNewOpSchema = yup.object({
 import { ScreenHeader } from "@components/ScreenHeader";
 import { Input } from "@components/Input";
 import { Button } from "@components/Button";
+import { ButtonDelete } from "@components/ButtonDelete";
 
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
+import { AppError } from '@utils/AppError';
+import { api } from '@services/api';
+import { InspectionOpDTO } from '@dtos/InspectionOpDTO';
 
+type RoutesParamsProps = {
+  dataInspecao: string;
+  codOrdemProducao: string;
+}
 
-export function InspectionNewOp() {
+export function InspectionOp() {
+  const route = useRoute();
+  const toast = useToast();  
+
+  const [inspectionOpDetails, setInspectionOpDetails] = useState<InspectionOpDTO>({} as InspectionOpDTO);
+
+  const empresa = 50;
+  const token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJjeC5kaGllZ28uc2FudG9zIiwiaXNzIjoiY3N3U2VydmVyIiwiaWF0IjoxNjY4Nzc5NjU3LCJhdWQiOiJjc3dWaWV3IiwiY3N3VG9rZW4iOiJ0WHJQY0xzN1o0UmNvdnY2VGo2a3h3IiwiZGJOYW1lU3BhY2UiOiJzaXN0ZW1hcyJ9.Z6usyCyYXDl8yAQbfkDbritv-bCHvgqL7Ehu9FtCGMpBB4FC2SY9v4qOCZGswjTf6qKVotmbgZCARxx_FmfWMw';
+  const { dataInspecao, codOrdemProducao } = route.params as RoutesParamsProps;
 
   const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({
     resolver: yupResolver(inspectionNewOpSchema)
   });
 
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+
+  async function fetchInspectionOpDetails() {
+    try {
+      let data = new Date(dataInspecao);
+      let dataFormatada = (data.getFullYear() + "-" + (data.getDate()) + "-" + ((data.getMonth() + 1))); 
+
+      const response = await api.get(`/custom/v10/inspecaoQualidade/${dataFormatada}/${codOrdemProducao}`, {
+        headers: {
+          'Authorization': `${token}`,
+          'empresa': `${empresa}`
+        }
+      });
+
+      setInspectionOpDetails(response.data);
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+
+      const title = isAppError ? "Não foi possivel carregar. Tente mais tarde" : 'Não foi possível carregar os detalhes das OPs. Tente novamente mais tarde.';
+
+      toast.show({
+        title,
+        placement: 'top',
+        bgColor: 'red.500'
+      });
+    }
+  }
 
   function handleFineshid({ 
     dateInspection, 
@@ -78,46 +123,57 @@ export function InspectionNewOp() {
     downTime,
     motifStopped
   }: FormDataProps) {
-    console.log({ 
-      dateInspection, 
-      week,
-      month,
-      codeOp,
-      sampling,
-      situationOp,
-      typeOp,
-      faction,
-      amountOp,
-      amountOpen,
-      amountRecovered,
-      secondQuality,
-      downTime,
-      motifStopped
-    });
 
     navigation.navigate('fineshid')
   }
 
-  const [date, setDate] = useState(new Date());
+  function handleDelete(){
+    Alert.alert(
+      'Excluir',
+      'Deseja excluir essa OP?',
+      [
+        { text: 'Não', style: 'cancel'},
+        { text: 'Sim', onPress: () => fetchInspectionOpDelete() }
+      ]
+    );
+  }
 
-  const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate;
-    setDate(currentDate);
-  };
+  async function fetchInspectionOpDelete() {
+    try {
+      let data = new Date(dataInspecao);
+      let dataFormatada = (data.getFullYear() + "-" + (data.getDate()) + "-" + ((data.getMonth() + 1))); 
 
+      const response = await api.delete(`/custom/v10/inspecaoQualidade/${dataFormatada}/${codOrdemProducao}`, {
+        headers: {
+          'Authorization': `${token}`,
+          'empresa': `${empresa}`
+        }
+      });
 
-  const showMode = (currentMode) => {
-    DateTimePickerAndroid.open({
-      value: date,
-      onChange,
-      mode: currentMode,
-      is24Hour: true,
-    });
-  };
+      if(response.data) {
+        navigation.navigate('inspectionOpList');
+      }
 
-  const showDatepicker = () => {
-    showMode('date');
-  };
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+
+      const title = isAppError ? "Não foi possivel deletar OP. Tente mais tarde" : 'Não foi possível deletar a OP. Tente novamente mais tarde.';
+
+      toast.show({
+        title,
+        placement: 'top',
+        bgColor: 'red.500'
+      });
+    }
+  }
+
+  useFocusEffect(useCallback(() => {
+    fetchInspectionOpDetails();
+  }, [codOrdemProducao]));
+
+  /*useEffect(() => {
+    fetchInspectionOpDetails()
+  }, [codOrdemProducao]);*/
 
   return(
     <VStack
@@ -156,8 +212,7 @@ export function InspectionNewOp() {
                 <Input 
                   placeholder='Data'
                   onChangeText={onChange}
-                  value={value}
-                  //onPressIn={showDatepicker}
+                  value={inspectionOpDetails.dataInspecao}
                   errorMessage={errors.dateInspection?.message}
                 />
               )}
@@ -185,7 +240,7 @@ export function InspectionNewOp() {
                   placeholder='Semana'
                   autoCapitalize='none'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.semana}
                   errorMessage={errors.week?.message}
                 />
               )}
@@ -212,7 +267,7 @@ export function InspectionNewOp() {
                   placeholder='Mês'
                   autoCapitalize='none'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.mes}
                   errorMessage={errors.month?.message}
                 />
               )}
@@ -242,7 +297,7 @@ export function InspectionNewOp() {
                   placeholder='Digite ou leia o código da op'
                   keyboardType='numeric'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.codOrdemProducao}
                   errorMessage={errors.codeOp?.message}
                 />
               )}
@@ -270,7 +325,7 @@ export function InspectionNewOp() {
                   placeholder='Amostragem'
                   keyboardType='numeric'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.qtdAmostras}
                   errorMessage={errors.sampling?.message}
                 />
               )}
@@ -299,7 +354,7 @@ export function InspectionNewOp() {
                 <Input 
                   placeholder='Situação da op'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.descStatus}
                   errorMessage={errors.situationOp?.message}
                 />
               )}
@@ -326,7 +381,7 @@ export function InspectionNewOp() {
                 <Input 
                   placeholder='Tipo'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.descTipoOrdemProducao}
                   errorMessage={errors.typeOp?.message}
                 />
               )}
@@ -355,7 +410,7 @@ export function InspectionNewOp() {
                 <Input 
                   placeholder='Facção'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.descFacccaoCostura}
                   errorMessage={errors.faction?.message}
                 />
               )}
@@ -383,7 +438,7 @@ export function InspectionNewOp() {
                   placeholder='Quantidade da op'
                   keyboardType='numeric'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.qtdOrdemProducao}
                   errorMessage={errors.amountOp?.message}
                 />
               )}
@@ -413,7 +468,7 @@ export function InspectionNewOp() {
                   placeholder='Quantidade abertas'
                   keyboardType='numeric'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.qtdAbertas}
                   errorMessage={errors.amountOpen?.message}
                 />
               )}
@@ -441,7 +496,7 @@ export function InspectionNewOp() {
                   placeholder='Quantidade recuperada'
                   keyboardType='numeric'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.qtdRecuperadas}
                   errorMessage={errors.amountRecovered?.message}
                 />
               )}
@@ -469,8 +524,38 @@ export function InspectionNewOp() {
                   placeholder='2ª qualidade'
                   keyboardType='numeric'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.qtdSegundaQualidade}
                   errorMessage={errors.secondQuality?.message}
+                />
+              )}
+            />
+          </VStack>
+        </HStack>
+
+        <HStack>
+          <VStack
+            flex={1}
+            mr={1}
+          >
+            <Text
+              color="gray.300"
+              mb={1}
+              fontSize="xs"
+              fontFamily="body"
+            >
+             Digite os motivos
+            </Text>
+
+            <Controller 
+              control={control}
+              name="motives"
+              render={({ field: {onChange, value} }) => (
+                <Input 
+                  placeholder='Digite os motivos'
+                  keyboardType='numeric'
+                  onChangeText={onChange}
+                  value={inspectionOpDetails.motivos}
+                  errorMessage={errors.motives?.message}
                 />
               )}
             />
@@ -499,7 +584,7 @@ export function InspectionNewOp() {
                   placeholder='Digite tempo parado (em minutos)'
                   keyboardType='numeric'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.tempoParadoHoras}
                   errorMessage={errors.downTime?.message}
                 />
               )}
@@ -528,13 +613,20 @@ export function InspectionNewOp() {
                 <Input 
                   placeholder='Digite o motivo do tempo parado'
                   onChangeText={onChange}
-                  value={value}
+                  value={inspectionOpDetails.observacao}
                   errorMessage={errors.motifStopped?.message}
                 />
               )}
             />
           </VStack>
         </HStack>
+
+        <ButtonDelete 
+          title="Excluir Inspeção Realizada"
+          onPress={handleDelete}
+          variant={'outline'}
+          mb={2}
+        />
         
         <Button 
           title="Salvar Inspeção Realizada"

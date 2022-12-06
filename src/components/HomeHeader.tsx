@@ -53,11 +53,11 @@ export function HomeHeader() {
 
       <TouchableOpacity>
         <Icon 
-          as={Feather}
-          name="settings"
-          color="gray.200"
-          size={7}
-          mr={14}
+          //as={Feather}
+          //name="settings"
+          //color="gray.200"
+          //size={7}
+          //mr={14}
         />
       </TouchableOpacity>
 

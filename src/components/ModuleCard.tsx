@@ -1,22 +1,22 @@
 import { 
   Text,
-  Button,
-  IButtonProps,
+  Pressable,
+  IPressableProps
 } from "native-base";
 
-type Props =  IButtonProps & {
+type Props = IPressableProps & {
   title: string;
-  size?: number;
 }
 
-export function ModuleCard({ size, title, ...rest }: Props ) {
+export function ModuleCard({ title, ...rest }: Props ) {
+
   return(
-    <Button
-      mr={2}
-      mb={2}
-      h={size}
-      w={size}
+    <Pressable
       bg="green.700"
+      mb={4}
+      h={100}
+      justifyContent="center"
+      alignItems="center"
       rounded="md"
       _pressed={{
         bg: "green.500"
@@ -30,6 +30,6 @@ export function ModuleCard({ size, title, ...rest }: Props ) {
       >
         {title}
       </Text>
-    </Button>
+    </Pressable>
   )
 }

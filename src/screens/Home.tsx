@@ -1,22 +1,42 @@
+import { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   VStack,
+  HStack,
   Text,
-  ScrollView,
-  HStack
+  FlatList
 } from 'native-base';
+
+import { useAuth } from '@hooks/useAuth';
 
 import { HomeHeader } from '@components/HomeHeader';
 import { ModuleCard } from '@components/ModuleCard';
 
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
+import { UserDTO } from '@dtos/UserDTO';
+
 
 export function Home(){
+  const [descModule, setDescModule] = useState<UserDTO[]>([]);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+  const { user } = useAuth();
 
-  function handleModuleListQuality() {
-    navigation.navigate('moduleListQuality')
+  function handleModuleList(codModulo: string) {
+    navigation.navigate('moduleList', { codModulo })
   }
+
+  function fetchModule() {
+    const codAplicativo = user.dadosCustomizados[0].aplicativos[0].codAplicativo;
+
+    if(codAplicativo == 1) {
+      const modulos = user.dadosCustomizados[0].aplicativos[0].modulos;
+      setDescModule(modulos);
+    }
+  }
+
+  useEffect(() => {
+    fetchModule();
+  }, [])
 
   return(
     <VStack
@@ -39,23 +59,22 @@ export function Home(){
         </Text>
       </VStack>
 
-      <ScrollView
+      <FlatList 
+        data={descModule}
+        keyExtractor={item => item.codModulo}
+        renderItem={({ item }) => (
+          <HStack>
+            <ModuleCard 
+              w={120}
+              title={item.descModulo}
+              onPress={() => handleModuleList(item.codModulo)}
+            />
+          </HStack>
+        )}
         mx={6}
         mb={10}
         showsVerticalScrollIndicator={false}
-      >
-        <HStack
-          flex={1}
-          flexWrap='wrap'
-        >
-          <ModuleCard 
-            title="Qualidade"
-            onPress={handleModuleListQuality}
-            p={10}
-          />
-        </HStack>
-        
-      </ScrollView>
+    />
     </VStack>
   )
 }

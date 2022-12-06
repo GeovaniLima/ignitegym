@@ -1,16 +1,18 @@
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Home } from '@screens/Home';
-import { ModuleListQuality } from '@screens/ModuleListQuality';
+import { ModuleList } from '@screens/ModuleList';
 import { InspectionOpList } from '@screens/InspectionOpList';
 import { Fineshid } from '@screens/Fineshid';
-import { InspectionNewOp } from '@screens/InspectionNewOp';
+import { InspectionOp } from '@screens/InspectionOp';
+import { InspectionOpNew } from '@screens/InspectionOpNew';
 
 type AppRoutes = {
   home: undefined;
-  moduleListQuality: undefined;
+  moduleList: { codModulo: string };
   inspectionOpList: undefined;
-  inspectionOpNewOp: undefined;
+  inspectionOp: { dataInspecao: string, codOrdemProducao: string};
+  inspectionOpNew: undefined;
   fineshid: undefined;
 }
 
@@ -30,16 +32,20 @@ export function AppRoutes() {
         component={Home}
       />
       <Screen 
-        name="moduleListQuality"
-        component={ModuleListQuality}
+        name="moduleList"
+        component={ModuleList}
       />
       <Screen 
         name="inspectionOpList"
         component={InspectionOpList}
       />
       <Screen 
-        name="inspectionOpNewOp"
-        component={InspectionNewOp}
+        name="inspectionOp"
+        component={InspectionOp}
+      />
+      <Screen 
+        name="inspectionOpNew"
+        component={InspectionOpNew}
       />
       <Screen 
         name="fineshid"
